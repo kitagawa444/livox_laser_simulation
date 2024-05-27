@@ -1,6 +1,11 @@
 # Livox Laser Simulation
 A package to provide plug-in for [Livox Series LiDAR](https://www.livoxtech.com).
 
+# additional requirement of lib(5/27 by kitagawa) 
+```
+   sudo apt-get install libignition-math4-dev
+```
+
 ## Requirements
 - ROS(=Melodic)
 - Gazebo (= 9.x, http://gazebosim.org/)
