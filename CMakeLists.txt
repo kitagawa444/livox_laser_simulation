@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(livox_laser_simulation)
 
-## Compile as C++14, supported in ROS Melodic and newer                                                                                                                                                    
-add_compile_options(-std=c++11)
+## Compile as C++17, required by ignition-math6 / sdformat9 / gazebo-11 on Ubuntu 22.04
+add_compile_options(-std=c++17)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
