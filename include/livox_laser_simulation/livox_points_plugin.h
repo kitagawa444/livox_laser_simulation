@@ -5,7 +5,6 @@
 #ifndef SRC_GAZEBO_LIVOX_POINTS_PLUGIN_H
 #define SRC_GAZEBO_LIVOX_POINTS_PLUGIN_H
 #include <ros/node_handle.h>
-#include <tf/transform_broadcaster.h>
 #include <gazebo/plugins/RayPlugin.hh>
 #include "livox_ode_multiray_shape.h"
 
@@ -78,8 +77,6 @@ class LivoxPointsPlugin : public RayPlugin {
 
     void InitializeScan(msgs::LaserScan*& scan);
 
-    void SendRosTf(const ignition::math::Pose3d& pose, const std::string& father_frame, const std::string& child_frame);
-
     boost::shared_ptr<physics::LivoxOdeMultiRayShape> rayShape;
     gazebo::physics::CollisionPtr laserCollision;
     physics::EntityPtr parentEntity;
@@ -92,7 +89,6 @@ class LivoxPointsPlugin : public RayPlugin {
 
     std::shared_ptr<ros::NodeHandle> rosNode;
     ros::Publisher rosPointPub;
-    std::shared_ptr<tf::TransformBroadcaster> tfBroadcaster;
 
     int64_t samplesStep = 0;
     int64_t currStartIndex = 0;
@@ -101,6 +97,8 @@ class LivoxPointsPlugin : public RayPlugin {
 
     double maxDist = 400.0;
     double minDist = 0.1;
+
+    std::string frameId;
 };
 
 }  // namespace gazebo

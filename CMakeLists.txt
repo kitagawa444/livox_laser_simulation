@@ -6,7 +6,6 @@ add_compile_options(-std=c++17)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  tf
 )
 
 find_package(gazebo REQUIRED)
@@ -29,7 +28,6 @@ include_directories(
 catkin_package(
         INCLUDE_DIRS include
         LIBRARIES livox_laser_simulation
-        CATKIN_DEPENDS tf
 )
 
 add_library(livox_laser_simulation SHARED src/livox_points_plugin.cpp src/livox_ode_multiray_shape.cpp)

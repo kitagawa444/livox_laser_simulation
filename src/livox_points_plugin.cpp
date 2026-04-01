@@ -59,8 +59,14 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
     rosPointPub = rosNode->advertise<sensor_msgs::PointCloud>(curr_scan_topic, 5);
 
     raySensor = _parent;
-    auto sensor_pose = raySensor->Pose();
-    SendRosTf(sensor_pose, raySensor->ParentName(), raySensor->Name());
+
+    // Configurable TF frame name (default derived from Gazebo sensor name)
+    if (sdf->HasElement("frame_id")) {
+        frameId = sdf->Get<std::string>("frame_id");
+    } else {
+        frameId = raySensor->Name();
+    }
+    ROS_INFO_STREAM("frame_id: " << frameId);
 
     node = transport::NodePtr(new transport::Node());
     node->Init(raySensor->WorldName());
@@ -117,8 +123,6 @@ void LivoxPointsPlugin::OnNewLaserScans() {
         msgs::LaserScan *scan = laserMsg.mutable_scan();
         InitializeScan(scan);
 
-        SendRosTf(parentEntity->WorldPose(), world->Name(), raySensor->ParentName());
-
         auto rayCount = RayCount();
         auto verticalRayCount = VerticalRayCount();
         auto angle_min = AngleMin().Radian();
@@ -128,7 +132,7 @@ void LivoxPointsPlugin::OnNewLaserScans() {
 
         sensor_msgs::PointCloud scan_point;
         scan_point.header.stamp = ros::Time::now();
-        scan_point.header.frame_id = raySensor->Name();
+        scan_point.header.frame_id = frameId;
         auto &scan_points = scan_point.points;
 
         for (auto &pair : points_pair) {
@@ -330,19 +334,6 @@ double LivoxPointsPlugin::GetVerticalAngleResolution() const { return VerticalAn
 
 double LivoxPointsPlugin::VerticalAngleResolution() const {
     return (VerticalAngleMax() - VerticalAngleMin()).Radian() / (VerticalRangeCount() - 1);
-}
-void LivoxPointsPlugin::SendRosTf(const ignition::math::Pose3d &pose, const std::string &father_frame,
-                                  const std::string &child_frame) {
-    if (!tfBroadcaster) {
-        tfBroadcaster.reset(new tf::TransformBroadcaster);
-    }
-    tf::Transform tf;
-    auto rot = pose.Rot();
-    auto pos = pose.Pos();
-    tf.setRotation(tf::Quaternion(rot.X(), rot.Y(), rot.Z(), rot.W()));
-    tf.setOrigin(tf::Vector3(pos.X(), pos.Y(), pos.Z()));
-    tfBroadcaster->sendTransform(
-        tf::StampedTransform(tf, ros::Time::now(), raySensor->ParentName(), raySensor->Name()));
 }
 
 }
