@@ -89,6 +89,7 @@ class LivoxPointsPlugin : public RayPlugin {
 
     std::shared_ptr<ros::NodeHandle> rosNode;
     ros::Publisher rosPointPub;
+    ros::Publisher rosCustomPub;
 
     int64_t samplesStep = 0;
     int64_t currStartIndex = 0;

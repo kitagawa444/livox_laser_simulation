@@ -51,6 +51,8 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
   <exec_depend>roscpp</exec_depend>
+  <depend>livox_ros_driver2</depend>
+  <exec_depend>gazebo_plugins</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

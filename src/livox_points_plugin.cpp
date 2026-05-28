@@ -6,6 +6,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/point_cloud2_iterator.h>
+#include <livox_ros_driver2/CustomMsg.h>
 #include <gazebo/physics/Model.hh>
 #include <gazebo/physics/MultiRayShape.hh>
 #include <gazebo/physics/PhysicsEngine.hh>
@@ -58,6 +59,13 @@ void LivoxPointsPlugin::Load(gazebo::sensors::SensorPtr _parent, sdf::ElementPtr
     ros::init(argc, argv, curr_scan_topic);
     rosNode.reset(new ros::NodeHandle);
     rosPointPub = rosNode->advertise<sensor_msgs::PointCloud2>(curr_scan_topic, 5);
+
+    std::string custom_topic = curr_scan_topic + "_custom";
+    if (sdf->HasElement("custom_ros_topic")) {
+        custom_topic = sdf->Get<std::string>("custom_ros_topic");
+    }
+    rosCustomPub = rosNode->advertise<livox_ros_driver2::CustomMsg>(custom_topic, 5);
+    ROS_INFO_STREAM("custom ros topic name:" << custom_topic);
 
     raySensor = _parent;
 
@@ -188,8 +196,33 @@ void LivoxPointsPlugin::OnNewLaserScans() {
             *iter_i = intensities[i];
         }
 
+        // Build CustomMsg
+        livox_ros_driver2::CustomMsg custom_msg;
+        custom_msg.header.stamp = scan_point.header.stamp;
+        custom_msg.header.frame_id = frameId;
+        custom_msg.timebase = custom_msg.header.stamp.toNSec();
+        custom_msg.lidar_id = 0;
+        custom_msg.rsvd[0] = 0;
+        custom_msg.rsvd[1] = 0;
+        custom_msg.rsvd[2] = 0;
+        const size_t num_pts = xs.size();
+        custom_msg.points.reserve(num_pts);
+        for (size_t i = 0; i < num_pts; ++i) {
+            livox_ros_driver2::CustomPoint pt;
+            pt.offset_time = (num_pts > 1) ? static_cast<uint32_t>(i * 100000000ULL / (num_pts - 1)) : 0;
+            pt.x = xs[i];
+            pt.y = ys[i];
+            pt.z = zs[i];
+            pt.reflectivity = static_cast<uint8_t>(std::min(255.0f, std::max(0.0f, intensities[i])));
+            pt.tag = 0;
+            pt.line = 0;
+            custom_msg.points.push_back(pt);
+        }
+        custom_msg.point_num = static_cast<uint32_t>(num_pts);
+
         if (scanPub && scanPub->HasConnections()) scanPub->Publish(laserMsg);
         rosPointPub.publish(scan_point);
+        rosCustomPub.publish(custom_msg);
         ros::spinOnce();
     }
 }

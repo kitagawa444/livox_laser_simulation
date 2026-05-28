@@ -6,6 +6,7 @@ add_compile_options(-std=c++17)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  livox_ros_driver2
 )
 
 find_package(gazebo REQUIRED)
